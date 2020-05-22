@@ -47,7 +47,7 @@ Cleave.prototype = {
         var owner = this, pps = owner.properties;
 
         // no need to use this lib
-        if (!pps.numeral && !pps.phone && !pps.creditCard && !pps.time && !pps.date && (pps.blocksLength === 0 && !pps.prefix)) {
+        if (!pps.numeral && (pps.blocksLength === 0 && !pps.prefix)) {
             owner.onInput(pps.initValue);
 
             return;
@@ -74,9 +74,6 @@ Cleave.prototype = {
         owner.element.addEventListener('copy', owner.onCopyListener);
 
 
-        owner.initPhoneFormatter();
-        owner.initDateFormatter();
-        owner.initTimeFormatter();
         owner.initNumeralFormatter();
 
         // avoid touch input field if value is null
@@ -119,51 +116,6 @@ Cleave.prototype = {
             pps.tailPrefix,
             pps.delimiter
         );
-    },
-
-    initTimeFormatter: function() {
-        var owner = this, pps = owner.properties;
-
-        if (!pps.time) {
-            return;
-        }
-
-        pps.timeFormatter = new Cleave.TimeFormatter(pps.timePattern, pps.timeFormat);
-        pps.blocks = pps.timeFormatter.getBlocks();
-        pps.blocksLength = pps.blocks.length;
-        pps.maxLength = Cleave.Util.getMaxLength(pps.blocks);
-    },
-
-    initDateFormatter: function () {
-        var owner = this, pps = owner.properties;
-
-        if (!pps.date) {
-            return;
-        }
-
-        pps.dateFormatter = new Cleave.DateFormatter(pps.datePattern, pps.dateMin, pps.dateMax);
-        pps.blocks = pps.dateFormatter.getBlocks();
-        pps.blocksLength = pps.blocks.length;
-        pps.maxLength = Cleave.Util.getMaxLength(pps.blocks);
-    },
-
-    initPhoneFormatter: function () {
-        var owner = this, pps = owner.properties;
-
-        if (!pps.phone) {
-            return;
-        }
-
-        // Cleave.AsYouTypeFormatter should be provided by
-        // external google closure lib
-        try {
-            pps.phoneFormatter = new Cleave.PhoneFormatter(
-                new pps.root.Cleave.AsYouTypeFormatter(pps.phoneRegionCode),
-                pps.delimiter
-            );
-        } catch (ex) {
-            throw new Error('[cleave.js] Please include phone-type-formatter.{country}.js lib');
-        }
     },
 
     onKeyDown: function (event) {
@@ -254,18 +206,6 @@ Cleave.prototype = {
             value = Util.headStr(value, value.length - pps.postDelimiterBackspace.length);
         }
 
-        // phone formatter
-        if (pps.phone) {
-            if (pps.prefix && (!pps.noImmediatePrefix || value.length)) {
-                pps.result = pps.prefix + pps.phoneFormatter.format(value).slice(pps.prefix.length);
-            } else {
-                pps.result = pps.phoneFormatter.format(value);
-            }
-            owner.updateValueState();
-
-            return;
-        }
-
         // numeral formatter
         if (pps.numeral) {
             // Do not show prefix when noImmediatePrefix is specified
@@ -278,16 +218,6 @@ Cleave.prototype = {
             owner.updateValueState();
 
             return;
-        }
-
-        // date
-        if (pps.date) {
-            value = pps.dateFormatter.getValidatedDate(value);
-        }
-
-        // time
-        if (pps.time) {
-            value = pps.timeFormatter.getValidatedTime(value);
         }
 
         // strip delimiters
@@ -321,11 +251,6 @@ Cleave.prototype = {
             }
         }
 
-        // update credit card props
-        if (pps.creditCard) {
-            owner.updateCreditCardPropsByValue(value);
-        }
-
         // strip over length characters
         value = Util.headStr(value, pps.maxLength);
 
@@ -337,30 +262,6 @@ Cleave.prototype = {
         );
 
         owner.updateValueState();
-    },
-
-    updateCreditCardPropsByValue: function (value) {
-        var owner = this, pps = owner.properties,
-            Util = Cleave.Util,
-            creditCardInfo;
-
-        // At least one of the first 4 characters has changed
-        if (Util.headStr(pps.result, 4) === Util.headStr(value, 4)) {
-            return;
-        }
-
-        creditCardInfo = Cleave.CreditCardDetector.getInfo(value, pps.creditCardStrictMode);
-
-        pps.blocks = creditCardInfo.blocks;
-        pps.blocksLength = pps.blocks.length;
-        pps.maxLength = Util.getMaxLength(pps.blocks);
-
-        // credit card type changed
-        if (pps.creditCardType !== creditCardInfo.type) {
-            pps.creditCardType = creditCardInfo.type;
-
-            pps.onCreditCardTypeChanged.call(owner, pps.creditCardType);
-        }
     },
 
     updateValueState: function () {
@@ -414,7 +315,6 @@ Cleave.prototype = {
         var owner = this, pps = owner.properties;
 
         pps.phoneRegionCode = phoneRegionCode;
-        owner.initPhoneFormatter();
         owner.onChange();
     },
 
@@ -452,20 +352,6 @@ Cleave.prototype = {
         return rawValue;
     },
 
-    getISOFormatDate: function () {
-        var owner = this,
-            pps = owner.properties;
-
-        return pps.date ? pps.dateFormatter.getISOFormatDate() : '';
-    },
-
-    getISOFormatTime: function () {
-        var owner = this,
-            pps = owner.properties;
-
-        return pps.time ? pps.timeFormatter.getISOFormatTime() : '';
-    },
-
     getFormattedValue: function () {
         return this.element.value;
     },
@@ -486,10 +372,6 @@ Cleave.prototype = {
 };
 
 Cleave.NumeralFormatter = require('../src/shortcuts/NumeralFormatter');
-Cleave.DateFormatter = require('../src/shortcuts/DateFormatter');
-Cleave.TimeFormatter = require('../src/shortcuts/TimeFormatter');
-Cleave.PhoneFormatter = require('../src/shortcuts/PhoneFormatter');
-Cleave.CreditCardDetector = require('../src/shortcuts/CreditCardDetector');
 Cleave.Util = require('../src/utils/Util');
 Cleave.DefaultProperties = require('../src/common/DefaultProperties');
 
