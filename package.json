@@ -1,28 +1,14 @@
 {
-  "name": "cleave.js",
-  "title": "cleave.js",
-  "description": "JavaScript library for formatting input text content when you are typing",
-  "version": "1.6.0",
+  "name": "cleave-lite",
+  "title": "cleave-lite",
+  "description": "a lightweight fork of cleave.js with only numeric options",
+  "version": "1.0.0",
   "files": [
-    "src",
-    "dist",
-    "react.js"
+    "dist"
   ],
-  "author": {
-    "name": "Max Huang",
-    "url": "http://github.com/nosir",
-    "email": "risonhuang@gmail.com"
-  },
-  "license": "Apache-2.0",
-  "bugs": "https://github.com/nosir/cleave.js/issues",
-  "homepage": "https://github.com/nosir/cleave.js",
-  "docs": "https://github.com/nosir/cleave.js/blob/master/README.md",
-  "main": "dist/cleave.js",
-  "module": "dist/cleave-esm.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/nosir/cleave.js.git"
-  },
+  "license": "MIT",
+  "main": "dist/cleave.cjs.js",
+  "module": "dist/cleave.esm.js",
   "scripts": {
     "build": "rollup -c"
   },
